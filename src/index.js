@@ -6,8 +6,14 @@ import {
 import express from "express";
 import http from "http";
 import { schema } from "./schema";
+import passport from "passport";
+import { Strategy as TwitchStrategy } from "passport-twitch-new";
+import dotenv from "dotenv";
+import { dbAccess } from "./utils/dbAccess";
 
 const main = async () => {
+  dotenv.config();
+
   const app = express();
   const httpServer = http.createServer(app);
 
@@ -25,9 +31,42 @@ const main = async () => {
   await apolloServer.start();
   apolloServer.applyMiddleware({
     app,
-    cors: false,
-    path: "/",
   });
+
+  app.use(passport.initialize());
+
+  passport.use(
+    new TwitchStrategy(
+      {
+        clientID: process.env.TWITCH_CLIENTID,
+        clientSecret: process.env.TWITCH_SECRET,
+        callbackURL: process.env.TWITCH_CALLBACK,
+        scope: "user_read",
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        const { id, email, login } = profile;
+
+        let user = await dbAccess.findOne("user", { field: "id", value: id });
+
+        if (!user) {
+          user = { id, email, username: login };
+          await dbAccess.insertOne("user", user);
+        }
+
+        return done(null, { id: user.id });
+      }
+    )
+  );
+
+  app.get("/auth/twitch", passport.authenticate("twitch"));
+  app.get(
+    "/auth/twitch/callback",
+    passport.authenticate("twitch", { session: false }),
+    (req, res) => {
+      // Successful authentication, redirect frontend.
+      res.redirect("/");
+    }
+  );
 
   const port = process.env.PORT || 4000;
 
