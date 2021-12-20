@@ -10,12 +10,39 @@ import passport from "passport";
 import { Strategy as TwitchStrategy } from "passport-twitch-new";
 import dotenv from "dotenv";
 import { dbAccess } from "./utils/dbAccess";
+import { createClient } from "redis";
+import session from "express-session";
+import connectRedis from "connect-redis";
 
 const main = async () => {
   dotenv.config();
 
   const app = express();
   const httpServer = http.createServer(app);
+
+  const RedisStore = connectRedis(session);
+  const redisClient = createClient({
+    url: process.env.REDIS_URL,
+  });
+
+  redisClient.on("connect", () => {
+    console.log("connected to redis...");
+  });
+
+  app.use(
+    session({
+      name: "qid",
+      store: new RedisStore({ client: redisClient }),
+      secret: process.env.SECRET,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: false,
+        httpOnly: false,
+        maxAge: 1000 * 60 * 10,
+      },
+    })
+  );
 
   const apolloServer = new ApolloServer({
     schema: schema,
@@ -63,6 +90,7 @@ const main = async () => {
     "/auth/twitch/callback",
     passport.authenticate("twitch", { session: false }),
     (req, res) => {
+      req.session.userId = req.user.id;
       // Successful authentication, redirect frontend.
       res.redirect("/");
     }
