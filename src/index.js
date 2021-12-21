@@ -13,6 +13,7 @@ import { dbAccess } from "./utils/dbAccess";
 import { createClient } from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
+import { graphqlUploadExpress } from "graphql-upload";
 
 const main = async () => {
   dotenv.config();
@@ -54,6 +55,8 @@ const main = async () => {
     uploads: false,
     introspection: true,
   });
+
+  app.use(graphqlUploadExpress());
 
   await apolloServer.start();
   apolloServer.applyMiddleware({
