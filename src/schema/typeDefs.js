@@ -1,10 +1,21 @@
 import { gql } from "apollo-server-core";
 
-export const songsTypeDefs = gql`
+export const typeDefs = gql`
   scalar Upload
+
+  type Query {
+    hello: String!
+    me: User!
+  }
 
   type Mutation {
     uploadSong(song: Upload): UploadResult
+  }
+
+  type User {
+    id: String!
+    username: String!
+    email: String!
   }
 
   type Song {

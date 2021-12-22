@@ -2,7 +2,19 @@ import { dbAccess } from "../utils/dbAccess";
 import { uploadFile } from "../utils/awsS3Uploader";
 import { v4 as uuid } from "uuid";
 
-export const songsResolver = {
+export const resolvers = {
+  Query: {
+    hello: () => "hello_world",
+    me: async (root, args, context) => {
+      console.log(context.req.session.qid);
+      const user = await dbAccess.findOne("user", {
+        field: "id",
+        value: context.req.session.qid,
+      });
+      console.log(user);
+      return null;
+    },
+  },
   Mutation: {
     uploadSong: async (root, args, context) => {
       const user = await dbAccess.findOne("user", {
@@ -40,6 +52,20 @@ export const songsResolver = {
         __typename: "Song",
         ...song,
       };
+    },
+  },
+};
+
+export const userResolver = {
+  Query: {
+    me: async (root, args, context) => {
+      console.log(context.req.session.qid);
+      const user = await dbAccess.findOne("user", {
+        field: "id",
+        value: context.req.session.qid,
+      });
+      console.log(user);
+      return null;
     },
   },
 };

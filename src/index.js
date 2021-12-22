@@ -14,12 +14,19 @@ import { createClient } from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import { graphqlUploadExpress } from "graphql-upload";
+import cors from "cors";
 
 const main = async () => {
   dotenv.config();
 
   const app = express();
   const httpServer = http.createServer(app);
+  app.use(
+    cors({
+      origin: process.env.ORIGIN,
+      credentials: true,
+    })
+  );
 
   const RedisStore = connectRedis(session);
   const redisClient = createClient({
@@ -93,9 +100,9 @@ const main = async () => {
     "/auth/twitch/callback",
     passport.authenticate("twitch", { session: false }),
     (req, res) => {
-      req.session.userId = req.user.id;
+      req.session.qid = req.user.id;
       // Successful authentication, redirect frontend.
-      res.redirect("/");
+      res.redirect("http://localhost:3000");
     }
   );
 
