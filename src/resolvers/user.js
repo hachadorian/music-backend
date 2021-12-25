@@ -7,7 +7,7 @@ export const userResolver = {
         field: "id",
         value: context.req.session.qid,
       });
-      return null;
+      return user;
     },
   },
 };

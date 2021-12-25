@@ -68,6 +68,7 @@ const main = async () => {
   await apolloServer.start();
   apolloServer.applyMiddleware({
     app,
+    cors: false,
   });
 
   app.use(passport.initialize());
