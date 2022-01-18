@@ -1,11 +1,30 @@
 import { dbAccess } from "../utils/dbAccess";
 import { uploadFile } from "../utils/awsS3Uploader";
 import { v4 as uuid } from "uuid";
+import { db } from "../db/connection";
+
+function hydrate(songs) {
+  return songs.map((x) => ({
+    ...x,
+    artist: {
+      id: x.userid,
+      username: x.username,
+    },
+  }));
+}
 
 export const songsResolver = {
+  Query: {
+    getAllSongs: async (root, args, context) => {
+      const songs = await db.raw(
+        "select songs.id, songs.name, songs.genre, songs.url, songs.userid, users.username from songs left join users on songs.userid = users.id"
+      );
+      return hydrate(songs.rows);
+    },
+  },
   Mutation: {
     uploadSong: async (root, args, context) => {
-      const user = await dbAccess.findOne("user", {
+      const user = await dbAccess.findOne("users", {
         field: "id",
         value: context.req.session.qid,
       });

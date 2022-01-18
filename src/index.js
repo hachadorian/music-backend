@@ -84,11 +84,11 @@ const main = async () => {
       async (accessToken, refreshToken, profile, done) => {
         const { id, email, login } = profile;
 
-        let user = await dbAccess.findOne("user", { field: "id", value: id });
+        let user = await dbAccess.findOne("users", { field: "id", value: id });
 
         if (!user) {
           user = { id, email, username: login };
-          await dbAccess.insertOne("user", user);
+          await dbAccess.insertOne("users", user);
         }
 
         return done(null, { id: user.id });
@@ -103,7 +103,7 @@ const main = async () => {
     (req, res) => {
       req.session.qid = req.user.id;
       // Successful authentication, redirect frontend.
-      res.redirect("http://localhost:3000");
+      res.redirect("http://localhost:3000/home");
     }
   );
 
