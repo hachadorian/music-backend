@@ -5,6 +5,7 @@ export const songsTypeDefs = gql`
 
   type Query {
     getAllSongs: [Song]
+    getAllGenres: [Song]
   }
 
   type Mutation {

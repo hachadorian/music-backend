@@ -21,6 +21,11 @@ export const songsResolver = {
       );
       return hydrate(songs.rows);
     },
+    getAllGenres: async (root, args, context) => {
+      const genres = await db.distinct("genre").from("songs");
+      console.log(genres);
+      return genres;
+    },
   },
   Mutation: {
     uploadSong: async (root, args, context) => {
